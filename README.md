@@ -4,7 +4,7 @@ TDs send Irish ministers thousands of written parliamentary questions every mont
 project has an AI decision model, [Jev](https://docs.typesafe.ai) by TypeSafe AI, read each
 reply and judge one thing: did it actually answer the question? A daily job keeps it current.
 
-**Site:** _link added after deploy_
+**Site:** https://did-they-answer.netlify.app
 
 ## Findings (as of 4 October 2026)
 
