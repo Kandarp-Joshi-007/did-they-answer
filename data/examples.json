@@ -1,0 +1,240 @@
+[
+ {
+  "kind": "Clear Reply",
+  "id": "2025-12-11/pq_459",
+  "date": "2025-12-11",
+  "to": "Social",
+  "question": "Deputy Paul McAuliffe asked the Minister for Social Protection the eligibility of a person (details supplied) for a pension (non-contributory).",
+  "reply": "An application for State pension non-contributory was received from the person concerned on 10 September 2024.\nThe maximum weekly rate of pension was awarded with effect from 19 September 2024 and notification of the decision issued, in writing, on 16 September 2024.\nI hope this clarifies the matter for the Deputy.",
+  "clarity": "Clear Reply",
+  "clarity_p": {
+   "Clear Reply": 0.95,
+   "Ambivalent": 0.05,
+   "Clear Non-Reply": 0.0
+  },
+  "technique": "Explicit",
+  "referred": 0.02,
+  "link": "https://www.oireachtas.ie/en/debates/question/2025-12-11/459/"
+ },
+ {
+  "kind": "Clear Reply",
+  "id": "2026-05-26/pq_580",
+  "date": "2026-05-26",
+  "to": "Education",
+  "question": "Deputy Emer Currie asked the Minister for Education and Youth the position regarding a project (details supplied).",
+  "reply": "As previously advised to the Deputy, the school referred to was approved to enter my Department's pipeline of projects under the Additional School Accommodation (ASA) scheme.\nThe project received approval from my Department to commence construction in January 2026. More recently, Department officials were notified by the school authorities that construction has now commenced. Expected completion to coincide with the start of the new school year.",
+  "clarity": "Clear Reply",
+  "clarity_p": {
+   "Clear Reply": 0.97,
+   "Clear Non-Reply": 0.0,
+   "Ambivalent": 0.03
+  },
+  "technique": "Explicit",
+  "referred": 0.03,
+  "link": "https://www.oireachtas.ie/en/debates/question/2026-05-26/580/"
+ },
+ {
+  "kind": "Clear Reply",
+  "id": "2026-04-28/pq_317",
+  "date": "2026-04-28",
+  "to": "Defence",
+  "question": "Deputy Paul Donnelly asked the Minister for Defence if she is aware of Irish Defence Forces members participating in military competitions with the Israeli Defence Forces; and if confirmed, her views on such on participation.",
+  "reply": "The Defence Forces participate in international military competitions in order to promote in the Defence Forces the adoption of international best practice, exchange of tactics, techniques and procedures (TTP) and encourage the development of military skills. It also contributes to the development of particular military skillsets and doctrines.\nThe decision on who to invite to these competitions lies with the hosting nation. I am informed by the military authorities that the Defence Forces have not participated in any military competitions organised by the Israeli Defence Forces. I am also informed that, to date, no Defence Forces team has reported Israeli Defence Forces participation in competitions attended by Defence Forces personnel.",
+  "clarity": "Clear Reply",
+  "clarity_p": {
+   "Clear Non-Reply": 0.0,
+   "Clear Reply": 0.9,
+   "Ambivalent": 0.1
+  },
+  "technique": "Explicit",
+  "referred": 0.03,
+  "link": "https://www.oireachtas.ie/en/debates/question/2026-04-28/317/"
+ },
+ {
+  "kind": "Clear Reply",
+  "id": "2025-11-06/pq_322",
+  "date": "2025-11-06",
+  "to": "Agriculture",
+  "question": "Deputy Erin McGreehan asked the Minister for Agriculture, Food and the Marine for an update on the timeline and commencement dates for the basic income support for sustainability scheme.",
+  "reply": "My Department is fully committed to making payments to farmers under the various schemes at the earliest date possible and to the maximum number of farmers possible. This commitment to farmers is evidenced in the very high payment rates achieved across all schemes over the last number of years in both EU and Exchequer funded schemes.\nThe timelines for all schemes, including the planned payment dates, have been set after extensive consultation with farmers and taking account of application systems, monitoring systems, validation and processing systems and payment systems.\nIn 2025, my Department commenced payments under the Basic Income Support for Sustainability (BISS) scheme from October 16th ensuring money flowed as soon as practically possible to farmers.\nThis payment date is in line with the traditional payment date of the BISS Scheme to farmers and is as outlined in the Farmers' Charter.",
+  "clarity": "Clear Reply",
+  "clarity_p": {
+   "Clear Non-Reply": 0.0,
+   "Clear Reply": 0.97,
+   "Ambivalent": 0.03
+  },
+  "technique": "Explicit",
+  "referred": 0.02,
+  "link": "https://www.oireachtas.ie/en/debates/question/2025-11-06/322/"
+ },
+ {
+  "kind": "Ambivalent",
+  "id": "2026-03-18/pq_1098",
+  "date": "2026-03-18",
+  "to": "Housing",
+  "question": "Deputy Tom Brabazon asked the Minister for Housing, Local Government and Heritage for an update on the financial contribution scheme; and the rationale to no longer fund this scheme.",
+  "reply": "The Government’s new housing plan, Delivering Homes, Building Communities 2025-2030, includes measures to increase delivery of housing for older people through increased delivery of social housing, increased delivery of more suitable homes in private housing and increased choice to support voluntary rightsizing, including a review of the operation of existing local authority financial contribution schemes.\nI understand that existing financial contribution schemes in place in some local authorities are non-statutory and therefore a matter for the individual local authorities. Consideration will be given to a review of the operation of existing local authority financial contribution schemes and my Department is advancing these measures now incorporated in the new housing plan.",
+  "clarity": "Ambivalent",
+  "clarity_p": {
+   "Ambivalent": 0.96,
+   "Clear Reply": 0.01,
+   "Clear Non-Reply": 0.03
+  },
+  "technique": "General",
+  "referred": 0.07,
+  "link": "https://www.oireachtas.ie/en/debates/question/2026-03-18/1098/"
+ },
+ {
+  "kind": "Ambivalent",
+  "id": "2026-07-15/pq_117",
+  "date": "2026-07-15",
+  "to": "Climate",
+  "question": "Deputy Réada Cronin asked the Minister for Climate, Energy and the Environment what specific regulatory changes are being sought by Re-Turn for the proposed rPET reprocessing facility; the Department's position on the establishment of such a processing facility.",
+  "reply": "Re-turn is a producer-led and owned, not-for-profit company established by beverage producers to meet their obligations under the Separate Collection (Deposit Return Scheme) Regulations.\nRe-turn has stated its ambition to develop an rPET reprocessing facility in Ireland. In this regard, Re-turn has briefed me and Departmental officials on its plans.\nThe matter remains under consideration, with the Department considering the various public policy considerations that arise.",
+  "clarity": "Ambivalent",
+  "clarity_p": {
+   "Clear Reply": 0.0,
+   "Clear Non-Reply": 0.04,
+   "Ambivalent": 0.96
+  },
+  "technique": "General",
+  "referred": 0.03,
+  "link": "https://www.oireachtas.ie/en/debates/question/2026-07-15/117/"
+ },
+ {
+  "kind": "Ambivalent",
+  "id": "2026-05-12/pq_316",
+  "date": "2026-05-12",
+  "to": "Transport",
+  "question": "Deputy John Paul O'Shea asked the Minister for Transport further to Parliamentary Question No.199 of 16 April 2026, regarding Ireland's current position (details supplied); whether he has articulated this position either internally with Irish officials or with European counterparts; if so, if he will provide details of what was articulated and through which medium.",
+  "reply": "I am aware of the concerns raised by car rental fleet operators regarding the Clean Corporate Vehicles proposal. We engage regularly with representatives from this sector and have met with them several times over the past year, including discussions specifically on this proposal.\nIt should be noted that the measure remains at proposal stage, with negotiations currently underway at EU level. The Regulation will not be finalised until such time as an agreement is reached between the Council and the European Parliament. This process is expected to run through 2026, which intersects with Ireland’s Presidency of the Council of the EU.",
+  "clarity": "Ambivalent",
+  "clarity_p": {
+   "Ambivalent": 0.93,
+   "Clear Non-Reply": 0.04,
+   "Clear Reply": 0.02
+  },
+  "technique": "Partial",
+  "referred": 0.03,
+  "link": "https://www.oireachtas.ie/en/debates/question/2026-05-12/316/"
+ },
+ {
+  "kind": "Ambivalent",
+  "id": "2026-07-28/pq_2565",
+  "date": "2026-07-28",
+  "to": "Agriculture",
+  "question": "Deputy Paul Murphy asked the Minister for Agriculture, Food and the Marine the numerical, scientific and editorial verification carried out before the Wildlife Unit End of Year Report for 2025 that was approved for publication; whether further errors have since been identified; and whether his Department will publish an amended report clearly identifying all corrections.",
+  "reply": "The Wildlife Report compiled by my Department has stated that there was 7,625 badger captures in the vaccine area in 2025. This is the correct figure. The figure of 8,123 is the number of badger captures that were recorded in vaccine areas for 2024. Table 4 in the report states the correct figures of badger captures for 2024 and 2025.\nFor the purposes of clarity the figure for 2024 will be removed from the body of the text.",
+  "clarity": "Ambivalent",
+  "clarity_p": {
+   "Clear Reply": 0.02,
+   "Clear Non-Reply": 0.08,
+   "Ambivalent": 0.9
+  },
+  "technique": "Partial",
+  "referred": 0.03,
+  "link": "https://www.oireachtas.ie/en/debates/question/2026-07-28/2565/"
+ },
+ {
+  "kind": "Clear Non-Reply",
+  "id": "2025-11-04/pq_1176",
+  "date": "2025-11-04",
+  "to": "Social",
+  "question": "Deputy Carol Nolan asked the Minister for Social Protection the number of people who have had their receipt of jobseeker's allowance or jobseeker's benefit permanently withdrawn or revoked for breach of the conditions associated with their claim, and who have not subsequently had their claim reinstated, from January 2020 to date.",
+  "reply": "To be eligible for a Jobseeker's payment a person must satisfy all the eligibility criteria for the relevant scheme.\nWhere a claim has been stopped, it will only be re-instated following an application by the customer and where all conditions of the scheme are satisfied.\nIt is not possible to provide data on the number of claims stopped and not subsequently re-instated due to the large churn on jobseekers schemes and the many legitimate reasons that claims are stopped.\nI trust that this clarifies matters for the Deputy.",
+  "clarity": "Clear Non-Reply",
+  "clarity_p": {
+   "Ambivalent": 0.04,
+   "Clear Reply": 0.0,
+   "Clear Non-Reply": 0.96
+  },
+  "technique": "Declining to answer",
+  "referred": 0.03,
+  "link": "https://www.oireachtas.ie/en/debates/question/2025-11-04/1176/"
+ },
+ {
+  "kind": "Clear Non-Reply",
+  "id": "2025-10-02/pq_330",
+  "date": "2025-10-02",
+  "to": "Social",
+  "question": "Deputy Ruth Coppinger asked the Minister for Social Protection the annual figures since 2015 for appeals lodged with the social welfare appeals office querying a refusal based on the habitual residence condition, by Irish citizens and non-Irish nationals, in tabular form.",
+  "reply": "I am advised by the Chief Appeals Officer that the Social Welfare Appeals Office does not collate data on appeals specifically relating to the Habitual Residence Condition, therefore the statistical information is not available.\nI trust this clarifies the matter for the Deputy.",
+  "clarity": "Clear Non-Reply",
+  "clarity_p": {
+   "Clear Reply": 0.01,
+   "Clear Non-Reply": 0.97,
+   "Ambivalent": 0.02
+  },
+  "technique": "Claims ignorance",
+  "referred": 0.04,
+  "link": "https://www.oireachtas.ie/en/debates/question/2025-10-02/330/"
+ },
+ {
+  "kind": "Clear Non-Reply",
+  "id": "2026-09-16/pq_678",
+  "date": "2026-09-16",
+  "to": "Housing",
+  "question": "Deputy John Paul O'Shea asked the Minister for Housing, Local Government and Heritage the number of appeals involving the rating of agricultural or horticultural buildings have been brought before the Valuation Tribunal since 2020; the number that were successful; and the average length of time taken to determine these appeals.",
+  "reply": "As the Valuation Tribunal is independent in the performance of its functions, my Department does not hold the information requested in relation to the number of appeals involving the rating of agricultural or horticultural buildings have been brought before the Valuation Tribunal since 2020; the number that were successful; or the average length of time taken to determine these appeals.\nIt is noted that certain information on Valuation Tribunal appeals activity is included in the Tribunal's Annual Reports, available on the organisation's website at: www.valuationtribunal.ie/about-us/publications/.\nJudgements of the Valuation Tribunal are also published and can be accessed on the Tribunal's website (at: www.valuationtribunal.ie/judgments/) under 'Name', 'Year', 'Property category' and 'Rating Authority'. It is noted that the Tribunal does not, however, include a specific category of appeal termed 'agriculture / horticultural'.\nThe Deputy may wish to contact the Tribunal directly in relation to the information sought by emailing info@valuationtribunal.ie.",
+  "clarity": "Clear Non-Reply",
+  "clarity_p": {
+   "Clear Non-Reply": 0.99,
+   "Clear Reply": 0.0,
+   "Ambivalent": 0.01
+  },
+  "technique": "Claims ignorance",
+  "referred": 0.49,
+  "link": "https://www.oireachtas.ie/en/debates/question/2026-09-16/678/"
+ },
+ {
+  "kind": "handoff",
+  "id": "2026-01-15/pq_508",
+  "date": "2026-01-15",
+  "to": "Health",
+  "question": "Deputy Pa Daly asked the Minister for Health the total number of GPs, and the number of GPs providing GMS services, in County Kerry, by local health area and per 10,000 population, at 1 December for each year from 2020 to 2025, in tabular form.",
+  "reply": "As this is a service matter, I have asked the HSE to reply to the Deputy directly as soon as possible.\nPlease note that as GPs are private practitioners, accordingly it may only be possible for the HSE to respond in relation to HSE contracted GPs.",
+  "clarity": "Clear Non-Reply",
+  "clarity_p": {
+   "Clear Non-Reply": 0.93,
+   "Ambivalent": 0.07,
+   "Clear Reply": 0.0
+  },
+  "technique": "Deflection",
+  "referred": 0.98,
+  "link": "https://www.oireachtas.ie/en/debates/question/2026-01-15/508/"
+ },
+ {
+  "kind": "handoff",
+  "id": "2026-05-27/pq_31",
+  "date": "2026-05-27",
+  "to": "Transport",
+  "question": "Deputy Paul Lawless asked the Minister for Transport for a record of all reported accidents, collisions, or safety incidents that have occurred at or in the vicinity of the unmarked traffic islands in Ballindine, County Mayo, on the N17, over the past 20 years; if road safety audits or assessments have been carried out at this location; and if there are plans to install appropriate road markings or safety measures at this site.",
+  "reply": "As Minister for Transport, I have responsibility for overall policy and exchequer funding in relation to the National Roads Programme. Under the Roads Acts 1993-2015 and in line with the National Development Plan (NDP), the operation and management of individual national roads is a matter for Transport Infrastructure Ireland (TII), in conjunction with the local authorities concerned. This is also subject to the Infrastructure Guidelines and the necessary statutory approvals. In this context, TII is best placed to advise you in relation to safety on the N17 at Ballindine, Co. Mayo.\nThe Government is committed to reducing road deaths and creating safer roads for everyone in Ireland.\nNoting the above position, I have referred your question to TII for a direct reply. Please advise my private office if you do not receive a reply within 10 working days.",
+  "clarity": "Clear Non-Reply",
+  "clarity_p": {
+   "Ambivalent": 0.06,
+   "Clear Non-Reply": 0.94,
+   "Clear Reply": 0.0
+  },
+  "technique": "Deflection",
+  "referred": 0.98,
+  "link": "https://www.oireachtas.ie/en/debates/question/2026-05-27/31/"
+ },
+ {
+  "kind": "handoff",
+  "id": "2026-01-13/pq_570",
+  "date": "2026-01-13",
+  "to": "Transport",
+  "question": "Deputy Naoise Ó Muirí asked the Minister for Transport the payroll cost of his Department and of each organisation or agency under its remit individually, in 2015 to 2025, by year, in tabular form.",
+  "reply": "The table below outlines the payroll costs of my Department from 2015-2025.\n\nAs this question also relates to agencies under the remit of the Department of Transport, I have referred the question to these agencies to reply to you directly. If the Deputy does not receive a response within ten working days, please contact my Private Office.",
+  "clarity": "Ambivalent",
+  "clarity_p": {
+   "Ambivalent": 0.96,
+   "Clear Non-Reply": 0.02,
+   "Clear Reply": 0.02
+  },
+  "technique": "Partial",
+  "referred": 0.96,
+  "link": "https://www.oireachtas.ie/en/debates/question/2026-01-13/570/"
+ }
+]

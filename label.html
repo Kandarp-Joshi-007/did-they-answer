@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Did They Answer — labelling</title>
+<style>
+  :root {
+    --bg: #f7f6f2; --panel: #ffffff; --ink: #1d1d1b; --muted: #6b6a65; --line: #e2e0d8;
+    --clear: #2f7d4f; --amb: #b7791f; --non: #b83a3a; --accent: #2b5fab;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #161614; --panel: #1f1f1c; --ink: #ecebe6; --muted: #9c9a92; --line: #33322e;
+      --clear: #5fbf85; --amb: #e0a84a; --non: #e57373; --accent: #7aa7ec;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink);
+         font: 15px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  header { display: flex; align-items: center; gap: 16px; padding: 12px 20px;
+           border-bottom: 1px solid var(--line); background: var(--panel); position: sticky; top: 0; z-index: 1; }
+  header h1 { font-size: 16px; margin: 0; }
+  .bar { flex: 1; height: 6px; background: var(--line); border-radius: 3px; overflow: hidden; }
+  .bar > div { height: 100%; background: var(--accent); width: 0; }
+  .count { color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  main { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 20px; padding: 20px; max-width: 1300px; margin: 0 auto; }
+  @media (max-width: 900px) { main { grid-template-columns: 1fr; } }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 18px 20px; }
+  .meta { color: var(--muted); font-size: 13px; margin-bottom: 8px; }
+  .q { font-weight: 600; margin: 0 0 16px; }
+  .group { background: color-mix(in srgb, var(--amb) 14%, transparent); border-radius: 6px;
+           padding: 6px 10px; font-size: 13px; margin-bottom: 12px; }
+  .reply p { margin: 0 0 10px; }
+  .side { position: sticky; top: 70px; align-self: start; display: flex; flex-direction: column; gap: 12px; }
+  .grp h3 { margin: 0 0 6px; font-size: 13px; text-transform: uppercase; letter-spacing: .04em; }
+  .grp.clear h3 { color: var(--clear); } .grp.amb h3 { color: var(--amb); } .grp.non h3 { color: var(--non); }
+  button.t { display: flex; width: 100%; gap: 10px; text-align: left; align-items: baseline;
+             background: transparent; color: var(--ink); border: 1px solid var(--line); border-radius: 7px;
+             padding: 7px 10px; margin-bottom: 5px; cursor: pointer; font: inherit; font-size: 14px; }
+  button.t:hover { border-color: var(--muted); }
+  button.t kbd { color: var(--muted); font-size: 12px; min-width: 12px; }
+  button.t small { display: block; color: var(--muted); font-size: 12px; }
+  .grp.clear button.on { border-color: var(--clear); background: color-mix(in srgb, var(--clear) 15%, transparent); }
+  .grp.amb button.on { border-color: var(--amb); background: color-mix(in srgb, var(--amb) 15%, transparent); }
+  .grp.non button.on { border-color: var(--non); background: color-mix(in srgb, var(--non) 15%, transparent); }
+  label.chk { display: flex; gap: 8px; font-size: 14px; cursor: pointer; margin-bottom: 4px; }
+  textarea { width: 100%; background: var(--bg); color: var(--ink); border: 1px solid var(--line);
+             border-radius: 6px; font: inherit; font-size: 13px; padding: 6px 8px; resize: vertical; }
+  .nav { display: flex; gap: 8px; }
+  .nav button { flex: 1; padding: 9px; border-radius: 7px; border: 1px solid var(--line);
+                background: var(--panel); color: var(--ink); font: inherit; cursor: pointer; }
+  .nav button.save { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .nav button:disabled { opacity: .45; cursor: default; }
+  .hint { color: var(--muted); font-size: 12px; }
+  .saved { color: var(--clear); font-size: 13px; min-height: 18px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Did they answer?</h1>
+  <div class="bar"><div id="bar"></div></div>
+  <span class="count" id="count"></span>
+</header>
+<main>
+  <section class="card">
+    <div class="meta" id="meta"></div>
+    <p class="q" id="question"></p>
+    <div class="group" id="group" hidden></div>
+    <div class="reply" id="reply"></div>
+  </section>
+  <aside class="side">
+    <div class="card" id="choices"></div>
+    <div class="card">
+      <label class="chk"><input type="checkbox" id="referred"> <span>Referred to another body <kbd>R</kbd><br><small class="hint">e.g. "the HSE will reply directly"</small></span></label>
+      <label class="chk"><input type="checkbox" id="unsure"> <span>I'm unsure about this one <kbd>U</kbd></span></label>
+      <textarea id="note" rows="2" placeholder="Note (optional)"></textarea>
+    </div>
+    <div class="nav">
+      <button id="prev">← Back</button>
+      <button id="save" class="save" disabled>Save &amp; next ⏎</button>
+    </div>
+    <button class="nav" id="jump" style="border:0;background:none;color:var(--accent);cursor:pointer;font:inherit">Jump to next unlabelled</button>
+    <div class="saved" id="saved"></div>
+    <div class="hint">Keys: 1–9 pick a label · R referred · U unsure · Enter save · ← → move</div>
+  </aside>
+</main>
+<script>
+// QEvasion taxonomy (Thomas et al., EMNLP 2024 Findings): 3 clarity levels, 9 techniques.
+const TAXONOMY = [
+  { clarity: "Clear Reply", cls: "clear", items: [
+    ["Explicit", "Gives the information asked for, directly"]]},
+  { clarity: "Ambivalent", cls: "amb", items: [
+    ["Implicit", "The answer is there, but you have to infer it"],
+    ["General", "Broad talk about the topic, not the specifics asked"],
+    ["Partial", "Answers only part of the question"],
+    ["Dodging", "Ignores the question, talks about something else"],
+    ["Deflection", "Shifts focus: other actors, past record, wider context"]]},
+  { clarity: "Clear Non-Reply", cls: "non", items: [
+    ["Declining to answer", "Openly won't give it (e.g. confidential)"],
+    ["Claims ignorance", "Says the information isn't held or known"],
+    ["Clarification", "Asks for more detail before answering"]]},
+];
+const TECHS = TAXONOMY.flatMap(g => g.items.map(([name]) => ({ name, clarity: g.clarity })));
+
+let items = [], labels = {}, i = 0, pick = null;
+const $ = id => document.getElementById(id);
+
+function renderChoices() {
+  let n = 0;
+  $("choices").innerHTML = TAXONOMY.map(g => `<div class="grp ${g.cls}"><h3>${g.clarity}</h3>` +
+    g.items.map(([name, desc]) => { n++;
+      return `<button class="t" data-t="${name}"><kbd>${n}</kbd><span>${name}<small>${desc}</small></span></button>`;
+    }).join("") + `</div>`).join("");
+  $("choices").querySelectorAll("button.t").forEach(b => b.onclick = () => choose(b.dataset.t));
+}
+
+function choose(name) {
+  pick = name;
+  $("choices").querySelectorAll("button.t").forEach(b => b.classList.toggle("on", b.dataset.t === name));
+  $("save").disabled = false;
+}
+
+function esc(s) { return s.replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c])); }
+
+function show() {
+  const it = items[i], lab = labels[it.id];
+  $("meta").textContent = `${it.date} · ${it.asked_by} → Minister for ${it.to} · ${it.topic}`;
+  $("question").textContent = it.question;
+  $("group").hidden = it.group_size < 2;
+  $("group").textContent = `This reply answers ${it.group_size} questions together. Judge it for the question above only.`;
+  $("reply").innerHTML = it.reply.split("\n").map(p => `<p>${esc(p)}</p>`).join("");
+  pick = null; choose(lab ? lab.technique : null); $("save").disabled = !lab;
+  $("referred").checked = !!(lab && lab.referred);
+  $("unsure").checked = !!(lab && lab.unsure);
+  $("note").value = (lab && lab.note) || "";
+  $("prev").disabled = i === 0;
+  const done = items.filter(x => labels[x.id]).length;
+  $("count").textContent = `${i + 1} / ${items.length} · ${done} labelled`;
+  $("bar").style.width = `${100 * done / items.length}%`;
+  window.scrollTo(0, 0);
+}
+
+async function save() {
+  if (!pick) return;
+  const it = items[i];
+  const label = { id: it.id, technique: pick, clarity: TECHS.find(t => t.name === pick).clarity,
+    referred: $("referred").checked, unsure: $("unsure").checked, note: $("note").value.trim(),
+    labelled_at: new Date().toISOString() };
+  const r = await fetch("/api/label", { method: "POST", body: JSON.stringify(label) });
+  if (!r.ok) { $("saved").textContent = "Save failed — is the server still running?"; return; }
+  labels[it.id] = label;
+  $("saved").textContent = `Saved ${it.id}`;
+  if (i < items.length - 1) { i++; show(); } else show();
+}
+
+function jump() {
+  const next = items.findIndex((x, k) => k > i && !labels[x.id]);
+  const any = next >= 0 ? next : items.findIndex(x => !labels[x.id]);
+  if (any >= 0) { i = any; show(); } else $("saved").textContent = "Everything is labelled.";
+}
+
+document.addEventListener("keydown", e => {
+  if (e.target.tagName === "TEXTAREA") return;
+  if (/^[1-9]$/.test(e.key)) choose(TECHS[+e.key - 1].name);
+  else if (e.key === "r" || e.key === "R") $("referred").click();
+  else if (e.key === "u" || e.key === "U") $("unsure").click();
+  else if (e.key === "Enter") save();
+  else if (e.key === "ArrowLeft" && i > 0) { i--; show(); }
+  else if (e.key === "ArrowRight" && i < items.length - 1) { i++; show(); }
+});
+$("save").onclick = save;
+$("prev").onclick = () => { if (i > 0) { i--; show(); } };
+$("jump").onclick = jump;
+
+fetch("/api/items").then(r => r.json()).then(d => {
+  items = d.items; labels = d.labels;
+  renderChoices();
+  const first = items.findIndex(x => !labels[x.id]);
+  i = first >= 0 ? first : 0;
+  show();
+});
+</script>
+</body>
+</html>

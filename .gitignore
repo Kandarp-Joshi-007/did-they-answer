@@ -1,0 +1,11 @@
+# Raw downloads (~500 MB) - re-creatable with fetch_pqs.py / fetch_months.py / fetch_years.sh
+data/pqs_*.jsonl
+data/xml_cache/
+# Superseded by data/judgments.jsonl (made by compact.py)
+data/jev_years.jsonl
+data/jev_months.jsonl
+# QEvasion is CC BY-NC-ND: not redistributed. Download it from Hugging Face (ailsntua/QEvasion).
+data/qevasion/test.jsonl
+data/*_report.txt
+data/*.log
+__pycache__/

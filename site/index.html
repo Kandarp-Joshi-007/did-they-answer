@@ -1,0 +1,969 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Did They Answer?</title>
+<meta name="description" content="TDs send Irish ministers thousands of written questions every month. An AI model read 40,000 of the replies and judged whether they answered.">
+<meta property="og:title" content="Did They Answer?">
+<meta property="og:description" content="An AI model read 40,000 replies from Irish ministers to TDs' written questions. Clear answers are getting rarer.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    color-scheme: light;
+    --page: #f9f9f7; --surface: #fcfcfb; --ink: #0b0b0b; --ink-2: #52514e; --muted: #898781;
+    --grid: #e1e0d9; --axis: #c3c2b7; --ring: rgba(11,11,11,0.10);
+    --clear: #2a78d6; --handoff: #eb6834; --non: #1baf7a; --partly: #b9b7ae;
+    --clear-band: rgba(42,120,214,0.14); --bar: #2a78d6; --bad: #b8322f; --link: #1c5cab;
+    --hero-a: #e9f1fb; --hero-b: #fbeee8; --shadow: 0 10px 40px rgba(11,11,11,0.08);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --page: #0d0d0d; --surface: #1a1a19; --ink: #ffffff; --ink-2: #c3c2b7; --muted: #898781;
+      --grid: #2c2c2a; --axis: #383835; --ring: rgba(255,255,255,0.10);
+      --clear: #3987e5; --handoff: #d95926; --non: #199e70; --partly: #5b5a55;
+      --clear-band: rgba(57,135,229,0.20); --bar: #3987e5; --bad: #e66767; --link: #86b6ef;
+      --hero-a: #10233b; --hero-b: #2a160e; --shadow: 0 10px 40px rgba(0,0,0,0.45);
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --page: #0d0d0d; --surface: #1a1a19; --ink: #ffffff; --ink-2: #c3c2b7; --muted: #898781;
+    --grid: #2c2c2a; --axis: #383835; --ring: rgba(255,255,255,0.10);
+    --clear: #3987e5; --handoff: #d95926; --non: #199e70; --partly: #5b5a55;
+    --clear-band: rgba(57,135,229,0.20); --bar: #3987e5; --bad: #e66767; --link: #86b6ef;
+    --hero-a: #10233b; --hero-b: #2a160e; --shadow: 0 10px 40px rgba(0,0,0,0.45);
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: var(--page); color: var(--ink);
+         font: 17px/1.65 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  a { color: var(--link); }
+  .display { font-family: "Fraunces", Georgia, serif; font-weight: 800; letter-spacing: -0.02em; }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 16px; }
+  .narrow { max-width: 720px; }
+
+  /* progress + chapter nav */
+  .progress { position: fixed; top: 0; left: 0; height: 3px; width: 0; z-index: 20;
+              background: linear-gradient(90deg, var(--clear), var(--handoff)); }
+  nav.chapters { position: fixed; top: 3px; left: 0; right: 0; z-index: 15; backdrop-filter: blur(10px);
+                 background: color-mix(in srgb, var(--page) 80%, transparent); border-bottom: 1px solid var(--ring);
+                 transform: translateY(-110%); transition: transform .3s; }
+  nav.chapters.show { transform: none; }
+  nav.chapters .wrap { display: flex; gap: 6px; align-items: center; overflow-x: auto; padding-top: 8px; padding-bottom: 8px; scrollbar-width: none; }
+  nav.chapters .brand { font-family: "Fraunces", Georgia, serif; font-weight: 800; margin-right: 10px; white-space: nowrap; }
+  nav.chapters a { color: var(--ink-2); text-decoration: none; font-size: 14px; padding: 4px 10px; border-radius: 999px; white-space: nowrap; }
+  nav.chapters a.on { background: var(--ink); color: var(--page); }
+
+  /* hero */
+  .hero { min-height: 100vh; min-height: 100svh; display: flex; flex-direction: column; justify-content: center;
+          background: radial-gradient(1200px 600px at 10% 10%, var(--hero-a), transparent 60%),
+                      radial-gradient(900px 600px at 95% 90%, var(--hero-b), transparent 60%); position: relative; }
+  .kicker { text-transform: uppercase; letter-spacing: .14em; font-size: 13px; color: var(--ink-2); font-weight: 600; }
+  .hero h1 { font-size: clamp(54px, 11vw, 132px); line-height: .95; margin: 14px 0 22px; }
+  .hero p.lede { font-size: clamp(19px, 2.4vw, 24px); color: var(--ink-2); max-width: 760px; margin: 0; }
+  .hero .stats { display: flex; gap: clamp(20px, 5vw, 64px); flex-wrap: wrap; margin-top: 44px; }
+  .hero .stat .n { font-family: "Fraunces", Georgia, serif; font-weight: 800; font-size: clamp(40px, 6vw, 64px); line-height: 1; }
+  .hero .stat .t { color: var(--ink-2); font-size: 15px; max-width: 220px; margin-top: 6px; }
+  .scrollcue { position: absolute; bottom: 28px; left: 50%; transform: translateX(-50%); color: var(--muted); font-size: 14px; text-align: center; }
+  .scrollcue span { display: block; font-size: 22px; animation: bob 1.8s ease-in-out infinite; }
+  @keyframes bob { 50% { transform: translateY(6px); } }
+  @media (max-width: 600px) { .scrollcue { display: none; } .hero { padding: 90px 0 48px; } }
+
+  /* hero ambient dots */
+  .hero canvas.ambient { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; opacity: .55; }
+  .hero .wrap { position: relative; z-index: 1; }
+  ::selection { background: color-mix(in srgb, var(--clear) 30%, transparent); }
+  section[id], header[id] { scroll-margin-top: 56px; }
+
+  /* 1,000 replies scrolly */
+  .scrolly { position: relative; padding: 60px 0 0; }
+  .scrolly .stage { position: sticky; top: 0; height: 100vh; height: 100svh; display: flex; align-items: center; }
+  .scrolly .stage canvas { width: 100%; height: 76vh; display: block; }
+  .scrolly .stepper { position: relative; z-index: 2; margin-top: -100vh; pointer-events: none; }
+  .scrolly .step { min-height: 95vh; display: flex; align-items: center; }
+  .scrolly .step .box { pointer-events: auto; max-width: 360px; background: color-mix(in srgb, var(--surface) 92%, transparent);
+                        border: 1px solid var(--ring); border-radius: 16px; padding: 20px 22px; box-shadow: var(--shadow);
+                        font-size: 18px; backdrop-filter: blur(6px); }
+  .scrolly .step .box b.k { font-family: "Fraunces", Georgia, serif; font-size: 34px; display: block; line-height: 1.1; }
+  .scrolly .step:last-child { min-height: 110vh; }
+  @media (max-width: 800px) {
+    .scrolly .stage canvas { height: 62vh; margin-top: 30vh; }
+    .scrolly .step { align-items: flex-start; padding-top: 6vh; }
+    .scrolly .step .box { max-width: none; font-size: 16px; }
+  }
+  .still .scrolly .stage { position: relative; height: auto; }
+  .still .scrolly .stepper { margin-top: 0; }
+  .still .scrolly .stage canvas { height: 640px; margin-top: 0; }
+  .still .scrolly .step { min-height: 0; padding: 10px 0; }
+
+  /* hand-off split */
+  .split-bar { display: flex; height: 44px; border-radius: 10px; overflow: hidden; gap: 3px; margin: 18px 0 8px; }
+  .split-bar div { display: flex; align-items: center; padding: 0 12px; color: #fff; font-weight: 700; font-size: 14px; white-space: nowrap;
+                   width: 0; transition: width 1s cubic-bezier(.2,.7,.2,1); overflow: hidden; }
+  .split-legend { display: flex; gap: 18px; flex-wrap: wrap; font-size: 14px; color: var(--ink-2); }
+  .split-legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+  .before-after { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-top: 22px; }
+  .before-after .card { padding: 18px; }
+  .ba-row { display: grid; grid-template-columns: 86px 1fr 44px; gap: 8px; align-items: center; font-size: 13px; color: var(--ink-2); margin-top: 8px; }
+  .ba-row .track { height: 10px; border-radius: 5px; background: var(--grid); overflow: hidden; }
+  .ba-row .fill { height: 100%; border-radius: 5px; background: var(--handoff); width: 0; transition: width 1s cubic-bezier(.2,.7,.2,1); }
+  .ba-row.then .fill { opacity: .5; }
+  .ba-row span:last-child { text-align: right; font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; }
+
+  /* sections */
+  section.chapter { padding: 110px 0 40px; }
+  .num { font-family: "Fraunces", Georgia, serif; font-weight: 800; color: var(--muted); font-size: 18px; }
+  .chapter h2 { font-size: clamp(32px, 5vw, 52px); line-height: 1.08; margin: 6px 0 18px; }
+  .chapter p.body { font-size: 19px; color: var(--ink-2); margin: 0 0 14px; }
+  .big { font-family: "Fraunces", Georgia, serif; font-weight: 800; font-size: clamp(64px, 12vw, 140px); line-height: .9; margin: 24px 0 8px; }
+  .big small { display: block; font-size: 20px; line-height: 1.4; margin-top: 12px; color: var(--ink-2);
+               font-family: system-ui, sans-serif; font-weight: 600; letter-spacing: 0; }
+  .card { background: var(--surface); border: 1px solid var(--ring); border-radius: 16px; padding: 22px; box-shadow: var(--shadow); }
+  .note { font-size: 13px; color: var(--muted); margin-top: 10px; }
+  .pull { border-left: 4px solid var(--handoff); padding: 4px 0 4px 18px; margin: 26px 0; font-size: 21px; color: var(--ink); }
+  .split { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; align-items: start; }
+  @media (max-width: 800px) { .split { grid-template-columns: 1fr; } }
+
+  .still .hero { min-height: 0; padding: 110px 0 140px; }
+  .still .reveal { opacity: 1; transform: none; transition: none; }
+
+  /* reveal on scroll */
+  .reveal { opacity: 0; transform: translateY(28px); transition: opacity .8s ease, transform .8s ease; }
+  .reveal.in { opacity: 1; transform: none; }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .reveal { opacity: 1; transform: none; transition: none; }
+    .scrollcue span { animation: none; }
+  }
+
+  /* charts */
+  .chart { width: 100%; position: relative; }
+  .chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+  .chart text { fill: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+  .chart .lbl { font-size: 13px; font-weight: 700; fill: var(--ink-2); }
+  .chart .ann { font-size: 13px; fill: var(--ink-2); }
+  .legend { display: flex; gap: 18px; flex-wrap: wrap; font-size: 14px; color: var(--ink-2); margin-bottom: 8px; }
+  .legend i { display: inline-block; width: 14px; height: 3px; border-radius: 2px; vertical-align: middle; margin-right: 6px; }
+  .bar-in { transform-box: fill-box; transform-origin: bottom; transform: scaleY(0); transition: transform .7s cubic-bezier(.2,.7,.2,1); }
+  .drawn .bar-in { transform: none; }
+  @media (prefers-reduced-motion: reduce) { .bar-in { transform: none; transition: none; } }
+  .tip { position: absolute; pointer-events: none; background: var(--surface); border: 1px solid var(--ring);
+         border-radius: 8px; padding: 8px 10px; font-size: 13px; box-shadow: var(--shadow);
+         white-space: nowrap; display: none; z-index: 30; }
+  .tip b { display: block; margin-bottom: 2px; }
+  .tip .sw { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
+
+  /* quiz */
+  .quiz { position: relative; }
+  .quiz .meta, .ex .meta { font-size: 13px; color: var(--muted); }
+  .quiz .q, .ex .q { font-weight: 650; font-size: 18px; margin: 8px 0 12px; }
+  .quiz .a, .ex .a { color: var(--ink-2); white-space: pre-line; font-size: 16px; }
+  .quiz .a { max-height: 260px; overflow: auto; padding-right: 6px; }
+  .choices { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 18px; }
+  @media (max-width: 600px) { .choices { grid-template-columns: 1fr; } }
+  .choices button { font: inherit; font-weight: 600; padding: 14px; border-radius: 12px; cursor: pointer;
+                    background: var(--page); color: var(--ink); border: 1.5px solid var(--ring); transition: transform .15s, border-color .15s; }
+  .choices button:hover:not(:disabled) { transform: translateY(-2px); border-color: var(--ink-2); }
+  .choices button:disabled { cursor: default; opacity: .55; }
+  .choices button.picked { opacity: 1; border-color: var(--ink); }
+  .reveal-box { margin-top: 16px; padding: 16px; border-radius: 12px; background: var(--page); display: none; }
+  .reveal-box.show { display: block; animation: pop .35s ease; }
+  @keyframes pop { from { opacity: 0; transform: scale(.98); } }
+  .quizbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-size: 14px; color: var(--ink-2); }
+  .dots { display: flex; gap: 6px; }
+  .dots i { width: 10px; height: 10px; border-radius: 50%; background: var(--grid); display: block; }
+  .dots i.on { background: var(--ink); }
+  .btn { font: inherit; font-weight: 600; padding: 10px 18px; border-radius: 999px; cursor: pointer; border: 0;
+         background: var(--ink); color: var(--page); }
+  .btn.ghost { background: transparent; color: var(--ink); border: 1px solid var(--ring); }
+
+  /* verdict bars */
+  .verdict { margin-top: 12px; font-size: 14px; }
+  .probs { display: flex; height: 10px; border-radius: 5px; overflow: hidden; margin: 8px 0 4px; gap: 2px; }
+  .probs div { height: 100%; transition: width .8s ease; }
+  .pill { display: inline-block; font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px;
+          border: 1px solid var(--ring); color: var(--ink-2); margin-left: 6px; }
+  .key { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; color: var(--muted); }
+  .key i { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; }
+
+  /* departments */
+  .sortbar { display: flex; gap: 8px; flex-wrap: wrap; margin: 6px 0 16px; font-size: 14px; color: var(--ink-2); align-items: center; }
+  .chip { font: inherit; font-size: 14px; padding: 6px 14px; border-radius: 999px; cursor: pointer;
+          background: var(--surface); color: var(--ink-2); border: 1px solid var(--ring); }
+  .chip[aria-pressed="true"] { background: var(--ink); color: var(--page); border-color: var(--ink); }
+  .dept { display: grid; grid-template-columns: 200px 1fr 64px; gap: 12px; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--grid); }
+  .dept .name { font-weight: 600; font-size: 15px; }
+  .dept .name small { display: block; font-weight: 400; color: var(--muted); font-size: 12px; }
+  .dept .stack { display: flex; height: 18px; border-radius: 5px; overflow: hidden; gap: 2px; }
+  .dept .stack div { height: 100%; transition: width .9s cubic-bezier(.2,.7,.2,1); }
+  .dept .val { text-align: right; font-variant-numeric: tabular-nums; font-weight: 700; }
+  @media (max-width: 600px) { .dept { grid-template-columns: 1fr 52px; } .dept .stack { grid-column: 1 / -1; grid-row: 2; } }
+
+  /* examples */
+  .tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+  .ex { display: grid; gap: 14px; }
+  .ex article { background: var(--surface); border: 1px solid var(--ring); border-radius: 16px; padding: 20px; }
+  .ex .a.clip { max-height: 7.5em; overflow: hidden; -webkit-mask-image: linear-gradient(#000 60%, transparent); mask-image: linear-gradient(#000 60%, transparent); }
+  .more { font: inherit; font-size: 13px; background: none; border: 0; color: var(--link); cursor: pointer; padding: 4px 0; }
+
+  /* trust */
+  .facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px; }
+  .facts .value { font-family: "Fraunces", Georgia, serif; font-weight: 800; font-size: 40px; line-height: 1.1; }
+  .facts p { margin: 6px 0 0; color: var(--ink-2); font-size: 14px; }
+  .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; counter-reset: s; }
+  .steps .card { padding: 18px; }
+  .steps .card::before { counter-increment: s; content: counter(s); font-family: "Fraunces", Georgia, serif; font-weight: 800;
+                         font-size: 28px; color: var(--clear); display: block; }
+  .steps p { margin: 4px 0 0; color: var(--ink-2); font-size: 15px; }
+  footer { margin-top: 90px; padding: 26px 0 60px; border-top: 1px solid var(--grid); font-size: 13px; color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="progress" id="progress"></div>
+<nav class="chapters" id="nav" aria-label="Chapters">
+  <div class="wrap">
+    <span class="brand">Did They Answer?</span>
+    <a href="#judge">You judge</a><a href="#thousand">1,000 replies</a><a href="#more">More questions</a><a href="#clear">Fewer answers</a>
+    <a href="#bundled">Bundled</a><a href="#passed">Passed on</a><a href="#depts">Departments</a>
+    <a href="#week">This week</a><a href="#trust">Trust</a>
+  </div>
+</nav>
+
+<header class="hero" id="top">
+  <canvas class="ambient" id="ambient" aria-hidden="true"></canvas>
+  <div class="wrap">
+    <div class="kicker">Dáil Éireann · written parliamentary questions · 2012–2026</div>
+    <h1 class="display">Did they<br>answer?</h1>
+    <p class="lede">Every month TDs send ministers thousands of written questions, and every reply goes on the public record. We had an AI model read <strong id="h-judged">40,000</strong> of those replies and judge one thing: <em>did it actually answer the question?</em></p>
+    <div class="stats">
+      <div class="stat"><div class="n" data-count="asked">0</div><div class="t">written questions a month now, up from <span id="h-asked24"></span> in 2024</div></div>
+      <div class="stat"><div class="n" data-count="clear" data-pct>0</div><div class="t">of ministers' own replies clearly answered, down from <span id="h-clear24"></span></div></div>
+      <div class="stat"><div class="n" data-count="handoff" data-pct>0</div><div class="t">of questions passed to another body to answer, up from <span id="h-hand12"></span></div></div>
+    </div>
+  </div>
+  <div class="scrollcue">Scroll to find out how<span>↓</span></div>
+</header>
+
+<main>
+  <section class="chapter" id="judge">
+    <div class="wrap narrow">
+      <div class="num reveal">Before we start</div>
+      <h2 class="display reveal">You be the judge</h2>
+      <p class="body reveal">Here are real questions from TDs and the replies they got. Read each one and decide: did the minister answer? Then see what the model thought.</p>
+      <div class="card quiz reveal" id="quiz"></div>
+    </div>
+  </section>
+
+  <section class="scrolly" id="thousand" aria-label="One thousand replies, sorted">
+    <div class="wrap narrow">
+      <div class="num reveal">The big picture</div>
+      <h2 class="display reveal" style="font-size:clamp(32px,5vw,52px);line-height:1.08;margin:6px 0 0">A thousand replies</h2>
+    </div>
+    <div class="stage"><div class="wrap" style="width:100%"><canvas id="dots" role="img" aria-label="1,000 dots, each a reply, grouped by whether it answered the question"></canvas></div></div>
+    <div class="stepper wrap" id="steps"></div>
+  </section>
+
+  <section class="chapter" id="more">
+    <div class="wrap">
+      <div class="narrow">
+        <div class="num reveal">Chapter 1</div>
+        <h2 class="display reveal">TDs are asking far more questions</h2>
+        <div class="big reveal" id="more-big"></div>
+        <p class="body reveal" id="more-body"></p>
+      </div>
+      <div class="card reveal" style="margin-top:20px">
+        <strong>Written questions asked each month</strong>
+        <div class="chart" id="chart-asked" style="margin-top:10px"></div>
+        <p class="note">No written questions in August (summer recess) or December 2024 (general election).</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="chapter" id="clear">
+    <div class="wrap">
+      <div class="narrow">
+        <div class="num reveal">Chapter 2</div>
+        <h2 class="display reveal">…and fewer of them get a clear answer</h2>
+        <p class="body reveal" id="clear-body"></p>
+      </div>
+      <div class="card reveal" style="margin-top:20px">
+        <div class="legend" id="legend-monthly"></div>
+        <div class="chart" id="chart-monthly"></div>
+        <p class="note">Share of ministers' own replies judged a clear answer, and share of questions passed to another body. Each month is a random sample of 1,000 questions; the shaded band is that sample's 95% range. Hover for exact figures.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="chapter" id="bundled">
+    <div class="wrap">
+      <div class="split">
+        <div>
+          <div class="num reveal">Chapter 3</div>
+          <h2 class="display reveal">One reply, many questions</h2>
+          <p class="body reveal" id="bundled-lead"></p>
+          <p class="body reveal" id="bundled-body"></p>
+          <div class="pull reveal" id="bundled-pull"></div>
+        </div>
+        <div class="card reveal">
+          <strong>Replies that answer two or more questions at once, monthly</strong>
+          <div class="chart" id="chart-grouped" style="margin-top:10px"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="chapter" id="passed">
+    <div class="wrap">
+      <div class="narrow">
+        <div class="num reveal">Chapter 4</div>
+        <h2 class="display reveal">“I have asked the HSE to reply directly”</h2>
+        <p class="body reveal">Many questions are about services run by agencies, not departments. So ministers often pass them on: the HSE, the NTA, the RSA reply to the TD instead. That's normal procedure, not dodging, so we count it separately. But it has become far more common.</p>
+        <div class="big reveal" id="passed-big"></div>
+        <p class="body reveal" style="margin-top:26px">Why the rise? Two things:</p>
+        <div class="reveal" id="split"></div>
+      </div>
+      <div class="before-after" id="before-after"></div>
+      <div class="card reveal" style="margin-top:20px">
+        <div class="legend" id="legend-yearly"></div>
+        <div class="chart" id="chart-yearly"></div>
+        <p class="note">March of every year, so years compare like for like. March 2016 and March 2020 followed general elections, so fewer questions were asked.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="chapter" id="depts">
+    <div class="wrap">
+      <div class="narrow">
+        <div class="num reveal">Chapter 5</div>
+        <h2 class="display reveal">It depends who you ask</h2>
+        <p class="body reveal" id="dept-body"></p>
+      </div>
+      <div class="card reveal" style="margin-top:20px">
+        <div class="sortbar" role="group" aria-label="Sort departments">Sort by
+          <button class="chip" data-sort="handoff" aria-pressed="true">Passed on</button>
+          <button class="chip" data-sort="clear">Clear answers</button>
+          <button class="chip" data-sort="n">Most questions</button>
+        </div>
+        <div class="key" style="margin-bottom:6px">
+          <span><i style="background:var(--handoff)"></i>Passed to another body</span>
+          <span><i style="background:var(--clear)"></i>Clear answer</span>
+          <span><i style="background:var(--partly)"></i>Partly answered</span>
+          <span><i style="background:var(--non)"></i>Not answered</span>
+        </div>
+        <div id="dept-list"></div>
+        <p class="note" id="dept-note"></p>
+      </div>
+    </div>
+  </section>
+
+  <section class="chapter" id="week">
+    <div class="wrap narrow">
+      <div class="num reveal">Live</div>
+      <h2 class="display reveal">This week in the Dáil</h2>
+      <div id="live" class="reveal"></div>
+    </div>
+  </section>
+
+  <section class="chapter" id="examples-section">
+    <div class="wrap narrow">
+      <div class="num reveal">See for yourself</div>
+      <h2 class="display reveal">Read more answers</h2>
+      <p class="body reveal">More real replies with the model's verdict. These are ones the model was at least 90% sure about.</p>
+      <div class="tabs reveal" id="tabs" role="group" aria-label="Filter examples"></div>
+      <div class="ex" id="examples"></div>
+    </div>
+  </section>
+
+  <section class="chapter" id="trust">
+    <div class="wrap">
+      <div class="narrow">
+        <div class="num reveal">The fine print</div>
+        <h2 class="display reveal">How far to trust this</h2>
+        <p class="body reveal">The model is right often enough to measure trends across thousands of replies, not to judge any single reply on its own. That's why this page shows departments and trends, and deliberately doesn't rank individual ministers. These numbers are measured, not claimed.</p>
+      </div>
+      <div class="facts" id="facts" style="margin-top:20px"></div>
+
+      <h2 class="display reveal" style="font-size:32px;margin-top:70px">How it works</h2>
+      <div class="steps">
+        <div class="card reveal"><strong>Collect</strong><p>Questions and replies come from the Houses of the Oireachtas open data API.</p></div>
+        <div class="card reveal"><strong>Judge</strong><p>Each reply goes to <a href="https://docs.typesafe.ai">Jev</a> (TypeSafe AI), a model that returns decisions with probabilities rather than writing text.</p></div>
+        <div class="card reveal"><strong>Classify</strong><p>Categories follow a published taxonomy of answer clarity (Thomas et al., EMNLP 2024). Passing a question on is counted separately.</p></div>
+        <div class="card reveal"><strong>Update</strong><p>A scheduled job checks for new replies every day and rebuilds this page. Each reply costs a few thousandths of a cent to judge.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="wrap">
+      <p id="updated"></p>
+      <p>Contains Oireachtas data licensed under the <a href="https://www.oireachtas.ie/en/open-data/license/">Oireachtas (Open Data) PSI Licence</a>. © Houses of the Oireachtas. Independent project, not endorsed by the Houses of the Oireachtas or TypeSafe AI.</p>
+      <p>Built by <a href="https://kandarp-joshi.netlify.app">Kandarp Joshi</a> · <a id="repo-link" href="https://github.com/Kandarp-Joshi-007/did-they-answer">Code and data</a></p>
+    </div>
+  </footer>
+</main>
+
+<div class="tip" id="tip" role="status" aria-live="polite"></div>
+
+<script>
+const pct = (v, d = 0) => v == null ? "–" : (v * 100).toFixed(d) + "%";
+const fmt = n => n == null ? "–" : Math.round(n).toLocaleString("en-IE");
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const monthName = m => MONTHS[+m.slice(5, 7) - 1] + " " + m.slice(0, 4);
+const KIND = { "Clear Reply": "Clear answer", "Ambivalent": "Partly answered", "Clear Non-Reply": "Not answered", "handoff": "Passed to another body" };
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+// "?still" renders everything at once (no animation, no full-screen hero) for screenshots.
+const still = new URLSearchParams(location.search).has("still");
+if (still) document.documentElement.classList.add("still");
+const reduced = still || matchMedia("(prefers-reduced-motion: reduce)").matches;
+const tip = document.getElementById("tip");
+const NS = "http://www.w3.org/2000/svg";
+
+function el(tag, attrs = {}, parent) {
+  const e = document.createElementNS(NS, tag);
+  for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
+  if (parent) parent.appendChild(e);
+  return e;
+}
+function showTip(evt, html) {
+  tip.innerHTML = html;
+  tip.style.display = "block";
+  let x = evt.clientX + 14;
+  if (x + tip.offsetWidth > window.innerWidth - 8) x = evt.clientX - tip.offsetWidth - 14;
+  tip.style.left = x + window.scrollX + "px";
+  tip.style.top = evt.clientY + window.scrollY - tip.offsetHeight - 12 + "px";
+}
+function hideTip() { tip.style.display = "none"; }
+function legend(id, series) {
+  document.getElementById(id).innerHTML = series.map(s =>
+    `<span><i style="background:var(${s.color})"></i>${s.label}</span>`).join("");
+}
+
+// Draw a chart the first time it scrolls into view (and redraw on resize without animating).
+const pending = new Map();
+const chartObserver = new IntersectionObserver(entries => {
+  for (const e of entries) if (e.isIntersecting && pending.has(e.target)) {
+    const draw = pending.get(e.target); pending.delete(e.target); chartObserver.unobserve(e.target); draw(true);
+  }
+}, { threshold: 0.35 });
+function whenVisible(id, draw) {
+  const host = document.getElementById(id);
+  if (host.dataset.drawn) return draw(false);
+  host.dataset.drawn = 1;
+  if (reduced) return draw(false);
+  pending.set(host, draw); chartObserver.observe(host);
+}
+
+// Line chart: one y-axis (shares), gaps where a value is null, a crosshair tooltip,
+// direct labels at the last point, an optional 95% band, and optional annotations.
+function lineChart(id, xs, xLabel, series, { yMax = 0.6, height = 320, tipTitle, tick, notes = [] } = {}) {
+  whenVisible(id, animate => {
+    const host = document.getElementById(id);
+    host.innerHTML = "";
+    const W = Math.max(300, host.clientWidth), narrow = W < 600;
+    const H = narrow ? Math.round(height * 0.8) : height, m = { t: 14, r: narrow ? 92 : 124, b: 30, l: 40 };
+    const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": series.map(s => s.label).join(" and ") + " over time" }, host);
+    const x = i => m.l + (xs.length === 1 ? 0 : i * (W - m.l - m.r) / (xs.length - 1));
+    const y = v => m.t + (1 - v / yMax) * (H - m.t - m.b);
+    for (let v = 0; v <= yMax + 1e-9; v += 0.1) {
+      el("line", { x1: m.l, x2: W - m.r, y1: y(v), y2: y(v), stroke: css(v === 0 ? "--axis" : "--grid") }, svg);
+      el("text", { x: m.l - 8, y: y(v) + 4, "text-anchor": "end" }, svg).textContent = Math.round(v * 100) + "%";
+    }
+    const step = Math.ceil(xs.length / (narrow ? 4 : 9));
+    xs.forEach((d, i) => {
+      if (tick ? tick(d, narrow) : (i % step === 0 || i === xs.length - 1))
+        el("text", { x: x(i), y: H - 8, "text-anchor": "middle" }, svg).textContent = xLabel(d);
+    });
+    for (const n of notes) {
+      const i = xs.indexOf(n.at);
+      if (i < 0 || narrow) continue;
+      el("line", { x1: x(i), x2: x(i), y1: m.t, y2: H - m.b, stroke: css("--axis"), "stroke-dasharray": "3 4" }, svg);
+      el("text", { x: x(i) + 6, y: m.t + 10, class: "ann" }, svg).textContent = n.text;
+    }
+    const segments = vals => {
+      const out = []; let cur = [];
+      vals.forEach((v, i) => { if (v == null) { if (cur.length) out.push(cur); cur = []; } else cur.push([i, v]); });
+      if (cur.length) out.push(cur);
+      return out;
+    };
+    const lines = [];
+    for (const s of series) {
+      if (s.band) for (const seg of segments(s.band.map(b => b && b[0]))) {
+        const pts = seg.map(([i]) => [x(i), y(s.band[i][1])]).concat(seg.slice().reverse().map(([i]) => [x(i), y(s.band[i][0])]));
+        el("polygon", { points: pts.map(p => p.join(",")).join(" "), fill: css("--clear-band") }, svg);
+      }
+      for (const seg of segments(s.values)) {
+        lines.push(el("polyline", { points: seg.map(([i, v]) => `${x(i)},${y(v)}`).join(" "), fill: "none",
+          stroke: css(s.color), "stroke-width": 2.5, "stroke-linejoin": "round", "stroke-linecap": "round" }, svg));
+        if (seg.length === 1) el("circle", { cx: x(seg[0][0]), cy: y(seg[0][1]), r: 4, fill: css(s.color) }, svg);
+      }
+      const last = s.values.map((v, i) => [i, v]).filter(p => p[1] != null).pop();
+      if (last) {
+        el("circle", { cx: x(last[0]), cy: y(last[1]), r: 4.5, fill: css(s.color), stroke: css("--surface"), "stroke-width": 2 }, svg);
+        el("text", { x: x(last[0]) + 10, y: y(last[1]) + 4, class: "lbl" }, svg).textContent = `${s.short} ${pct(last[1])}`;
+      }
+    }
+    if (animate) {
+      // Draw the lines left to right, one segment after another.
+      let delay = 0;
+      for (const ln of lines) {
+        const len = ln.getTotalLength();
+        const dur = Math.max(150, len * 1.6);
+        ln.style.strokeDasharray = len; ln.style.strokeDashoffset = len;
+        ln.getBoundingClientRect();
+        ln.style.transition = `stroke-dashoffset ${dur}ms linear ${delay}ms`;
+        ln.style.strokeDashoffset = 0;
+        delay += dur / series.length;
+      }
+    }
+    const cross = el("line", { y1: m.t, y2: H - m.b, stroke: css("--axis"), visibility: "hidden" }, svg);
+    const dots = series.map(s => el("circle", { r: 5, fill: css(s.color), stroke: css("--surface"), "stroke-width": 2, visibility: "hidden" }, svg));
+    const hit = el("rect", { x: m.l, y: m.t, width: W - m.l - m.r, height: H - m.t - m.b, fill: "transparent" }, svg);
+    hit.addEventListener("pointermove", e => {
+      const pt = svg.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY;
+      const p = pt.matrixTransform(svg.getScreenCTM().inverse());
+      const i = Math.max(0, Math.min(xs.length - 1, Math.round((p.x - m.l) / ((W - m.l - m.r) / Math.max(1, xs.length - 1)))));
+      cross.setAttribute("x1", x(i)); cross.setAttribute("x2", x(i)); cross.setAttribute("visibility", "visible");
+      series.forEach((s, k) => {
+        const v = s.values[i];
+        dots[k].setAttribute("visibility", v == null ? "hidden" : "visible");
+        if (v != null) { dots[k].setAttribute("cx", x(i)); dots[k].setAttribute("cy", y(v)); }
+      });
+      showTip(e, `<b>${tipTitle ? tipTitle(xs[i]) : xLabel(xs[i])}</b>` + series.map(s =>
+        `<div><span class="sw" style="background:var(${s.color})"></span>${s.label}: ${s.values[i] == null ? "no questions" : pct(s.values[i], 1)}${s.band && s.band[i] ? ` <span style="color:var(--muted)">(${pct(s.band[i][0])}–${pct(s.band[i][1])})</span>` : ""}</div>`).join(""));
+    });
+    hit.addEventListener("pointerleave", () => { hideTip(); cross.setAttribute("visibility", "hidden"); dots.forEach(d => d.setAttribute("visibility", "hidden")); });
+  });
+}
+
+function barChart(id, xs, values, { height = 240, color = "--bar", format = fmt, yMax, highlight } = {}) {
+  whenVisible(id, animate => {
+    const host = document.getElementById(id);
+    host.innerHTML = "";
+    const W = Math.max(280, host.clientWidth), H = height, m = { t: 10, r: 8, b: 26, l: 46 };
+    const max = yMax || Math.max(...values.filter(v => v != null)) * 1.1;
+    const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "Bar chart by month" }, host);
+    const bw = (W - m.l - m.r) / xs.length;
+    const y = v => m.t + (1 - v / max) * (H - m.t - m.b);
+    const ticks = yMax ? [0, yMax / 2, yMax] : [0, Math.round(max / 2 / 1000) * 1000, Math.floor(max / 1000) * 1000];
+    ticks.forEach(t => {
+      el("line", { x1: m.l, x2: W - m.r, y1: y(t), y2: y(t), stroke: css(t === 0 ? "--axis" : "--grid") }, svg);
+      el("text", { x: m.l - 6, y: y(t) + 4, "text-anchor": "end" }, svg).textContent = yMax ? pct(t) : (t >= 1000 ? t / 1000 + "k" : t);
+    });
+    const g = el("g", {}, svg);
+    xs.forEach((d, i) => {
+      const v = values[i];
+      if (v != null && v > 0) {
+        const h = Math.max(1, y(0) - y(v)), r = Math.min(4, bw / 3);
+        const bar = el("path", { d: `M${m.l + i * bw + 1},${y(0)} v${-(h - r)} q0,-${r} ${r},-${r} h${Math.max(0, bw - 2 - 2 * r)} q${r},0 ${r},${r} v${h - r} z`,
+          fill: css(color), "fill-opacity": highlight && !highlight(d) ? 0.45 : 1, class: animate ? "bar-in" : "" }, g);
+        if (animate) bar.style.transitionDelay = `${i * 18}ms`;
+      }
+      const hit = el("rect", { x: m.l + i * bw, y: m.t, width: bw, height: H - m.t - m.b, fill: "transparent" }, svg);
+      hit.addEventListener("pointermove", e => showTip(e, `<b>${monthName(d)}</b>${v ? format(v) : "no questions"}`));
+      hit.addEventListener("pointerleave", hideTip);
+      if (d.endsWith("-01")) el("text", { x: m.l + i * bw + bw / 2, y: H - 8, "text-anchor": "middle" }, svg).textContent = d.slice(0, 4);
+    });
+    if (animate) requestAnimationFrame(() => requestAnimationFrame(() => host.classList.add("drawn")));
+    else host.classList.add("drawn");
+  });
+}
+
+function verdictHTML(e) {
+  const p = e.clarity_p;
+  const kind = e.referred >= 0.5 ? "handoff" : e.clarity;
+  return `<div class="verdict"><strong>The model's verdict: ${KIND[kind]}</strong><span class="pill">${esc(e.technique)}</span>
+    ${e.referred >= 0.5 ? `<div class="note" style="margin-top:4px">Passed to another body: ${pct(e.referred)} likely</div>` : ""}
+    <div class="probs" aria-hidden="true">
+      <div style="width:${(p["Clear Reply"] || 0) * 100}%;background:var(--clear)"></div>
+      <div style="width:${(p["Ambivalent"] || 0) * 100}%;background:var(--partly)"></div>
+      <div style="width:${(p["Clear Non-Reply"] || 0) * 100}%;background:var(--non)"></div></div>
+    <div class="key"><span><i style="background:var(--clear)"></i>Clear ${pct(p["Clear Reply"])}</span>
+      <span><i style="background:var(--partly)"></i>Partly ${pct(p["Ambivalent"])}</span>
+      <span><i style="background:var(--non)"></i>Not answered ${pct(p["Clear Non-Reply"])}</span></div></div>`;
+}
+
+function articleHTML(e) {
+  const long = e.reply.length > 480;
+  return `<article><div class="meta">${esc(e.date)} · ${esc(e.dept)} · <a href="${esc(e.link)}" target="_blank" rel="noopener">Read on oireachtas.ie</a></div>
+    <div class="q">${esc(e.question)}</div><div class="a${long ? " clip" : ""}">${esc(e.reply)}</div>
+    ${long ? `<button class="more" onclick="this.previousElementSibling.classList.remove('clip');this.remove()">Show full reply</button>` : ""}
+    ${verdictHTML(e)}</article>`;
+}
+
+function countUp(node, to, isPct) {
+  const show = v => node.textContent = isPct ? Math.round(v * 100) + "%" : fmt(v);
+  if (reduced) return show(to);
+  const t0 = performance.now(), dur = 1400;
+  const tick = t => { const k = Math.min(1, (t - t0) / dur); show(to * (1 - Math.pow(1 - k, 3))); if (k < 1) requestAnimationFrame(tick); };
+  requestAnimationFrame(tick);
+}
+
+// ---------- quiz ----------
+function quiz(d) {
+  // One example of each clarity level, shortest first so it reads quickly.
+  const byKind = k => d.examples.filter(e => e.kind === k).sort((a, b) => a.reply.length - b.reply.length);
+  const rounds = [byKind("Clear Non-Reply")[0], byKind("Clear Reply")[0], byKind("Ambivalent")[0]].filter(Boolean);
+  const box = document.getElementById("quiz");
+  let i = 0, agreed = 0;
+  const human = d.method.human;
+  const render = () => {
+    if (i >= rounds.length) {
+      box.innerHTML = `<div class="quizbar"><span>Your result</span></div>
+        <div class="display" style="font-size:44px;line-height:1.1">You agreed with the model on ${agreed} of ${rounds.length}.</div>
+        <p class="body" style="margin-top:12px">${human ? `When a person judged ${human.n_compared} replies blind, they agreed with the model ${pct(human.human_jev)} of the time.` : ""}
+        Reasonable people disagree about "partly answered", and so does the model. That's why everything below is about trends across thousands of replies, not single answers.</p>
+        <button class="btn ghost" id="q-again">Try again</button> <a class="btn" href="#more" style="text-decoration:none;display:inline-block">See what 40,000 replies show ↓</a>`;
+      document.getElementById("q-again").onclick = () => { i = 0; agreed = 0; render(); };
+      return;
+    }
+    const e = rounds[i];
+    box.innerHTML = `<div class="quizbar"><span>Question ${i + 1} of ${rounds.length}</span>
+        <span class="dots">${rounds.map((_, k) => `<i class="${k <= i ? "on" : ""}"></i>`).join("")}</span></div>
+      <div class="meta">${esc(e.date)} · ${esc(e.dept)}</div>
+      <div class="q">${esc(e.question)}</div>
+      <div class="a">${esc(e.reply)}</div>
+      <div class="choices">${["Clear Reply", "Ambivalent", "Clear Non-Reply"].map(k => `<button data-k="${k}">${KIND[k]}</button>`).join("")}</div>
+      <div class="reveal-box" id="q-reveal"></div>`;
+    box.querySelectorAll(".choices button").forEach(b => b.onclick = () => {
+      const same = b.dataset.k === e.clarity;
+      if (same) agreed++;
+      box.querySelectorAll(".choices button").forEach(x => { x.disabled = true; x.classList.toggle("picked", x === b); });
+      const r = document.getElementById("q-reveal");
+      r.innerHTML = `<div class="display" style="font-size:24px">${same ? "You agreed with the model." : "The model saw it differently."}</div>
+        ${verdictHTML(e)}
+        <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap"><button class="btn" id="q-next">${i + 1 < rounds.length ? "Next question →" : "See your result"}</button>
+        <a class="btn ghost" href="${esc(e.link)}" target="_blank" rel="noopener" style="text-decoration:none">Read on oireachtas.ie</a></div>`;
+      r.classList.add("show");
+      document.getElementById("q-next").onclick = () => { i++; render(); };
+    });
+  };
+  render();
+}
+
+// ---------- departments ----------
+function departments(d, sortKey) {
+  const rows = d.departments.slice().sort((a, b) => sortKey === "n" ? b.n - a.n : (b[sortKey] - a[sortKey]));
+  const list = document.getElementById("dept-list");
+  list.innerHTML = rows.map(r => {
+    const own = 1 - r.handoff;
+    const seg = [["--handoff", r.handoff, "Passed on"], ["--clear", own * r.clear, "Clear"], ["--partly", own * r.partly, "Partly"], ["--non", own * r.non, "Not answered"]];
+    const val = sortKey === "clear" ? pct(r.clear) : sortKey === "n" ? fmt(r.n) : pct(r.handoff);
+    return `<div class="dept" data-tip="${esc(r.name)}: ${pct(r.handoff)} passed on · of own replies ${pct(r.clear)} clear, ${pct(r.partly)} partly, ${pct(r.non)} not answered · ${fmt(r.n)} judged">
+      <div class="name">${esc(r.name)}<small>${fmt(r.n)} judged</small></div>
+      <div class="stack">${seg.map(([c, w]) => `<div style="width:0;background:var(${c})" data-w="${w * 100}%"></div>`).join("")}</div>
+      <div class="val">${val}</div></div>`;
+  }).join("");
+  list.querySelectorAll(".dept").forEach(row => {
+    row.addEventListener("pointermove", e => showTip(e, row.dataset.tip));
+    row.addEventListener("pointerleave", hideTip);
+  });
+  const grow = () => list.querySelectorAll(".stack div").forEach(s => s.style.width = s.dataset.w);
+  if (reduced || list.dataset.seen) grow();
+  else new IntersectionObserver((es, o) => { if (es[0].isIntersecting) { list.dataset.seen = 1; requestAnimationFrame(grow); o.disconnect(); } }, { threshold: 0.2 }).observe(list);
+}
+
+
+// ---------- hero: a slow drift of dots in the verdict colours ----------
+function ambient(d) {
+  const cv = document.getElementById("ambient"), ctx = cv.getContext("2d");
+  const m = d.headline.mix_recent, own = 1 - m.handoff;
+  const palette = [["--handoff", m.handoff], ["--clear", own * m.clear], ["--partly", own * m.partly], ["--non", own * m.non]];
+  let W, H, dots = [], visible = true;
+  const running = !reduced;
+  const pick = () => { let r = Math.random(); for (const [c, w] of palette) { if ((r -= w) <= 0) return c; } return palette[0][0]; };
+  const size = () => {
+    const dpr = Math.min(2, devicePixelRatio || 1);
+    W = cv.clientWidth; H = cv.clientHeight; cv.width = W * dpr; cv.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const n = Math.round(Math.min(140, W * H / 9000));
+    dots = Array.from({ length: n }, () => ({ x: Math.random() * W, y: Math.random() * H, r: 2 + Math.random() * 3.5,
+      v: 0.12 + Math.random() * 0.35, c: pick(), p: Math.random() * 6.28 }));
+  };
+  const frame = () => {
+    ctx.clearRect(0, 0, W, H);
+    const colors = Object.fromEntries(palette.map(([c]) => [c, css(c)]));
+    ctx.globalAlpha = 0.5;
+    for (const o of dots) {
+      if (running) { o.y -= o.v; o.p += 0.01; if (o.y < -10) { o.y = H + 10; o.x = Math.random() * W; } }
+      ctx.fillStyle = colors[o.c];
+      ctx.beginPath(); ctx.arc(o.x + Math.sin(o.p) * 8, o.y, o.r, 0, 6.283); ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+    if (running && visible) requestAnimationFrame(frame);
+  };
+  size(); frame();
+  addEventListener("resize", () => { size(); if (!running || !visible) frame(); });
+  new IntersectionObserver(es => { const was = visible; visible = es[0].isIntersecting; if (visible && !was && running) frame(); })
+    .observe(cv);
+}
+
+// ---------- 1,000 replies: dots that regroup as the reader scrolls ----------
+function thousand(d) {
+  const N = 1000, h = d.headline, cv = document.getElementById("dots"), ctx = cv.getContext("2d");
+  const counts = mx => {
+    const handoff = Math.round(N * mx.handoff), own = N - handoff;
+    const clear = Math.round(own * mx.clear), non = Math.round(own * mx.non);
+    return { handoff, clear, partly: own - clear - non, non, own };
+  };
+  const now = counts(h.mix_recent), then = counts(h.mix_2024);
+  const LBL = { all: "replies", handoff: "passed on", rest: "the rest", own: "written by the minister", clear: "clear", partly: "partly", non: "not answered" };
+  const COL = { all: "--muted", rest: "--muted", own: "--muted", handoff: "--handoff", clear: "--clear", partly: "--partly", non: "--non" };
+  // Each step lists the groups on screen, in order. Dots fill the groups in that order, so a
+  // dot keeps its place in the sequence and only moves when the grouping changes.
+  const steps = [
+    { bins: [["all", N]], text: `<b class="k">1,000 replies</b>Each dot is one reply to a TD's written question, drawn in proportion to the last 12 months.` },
+    { bins: [["handoff", now.handoff], ["own", now.own]], text: `<b class="k" style="color:var(--handoff)">${now.handoff} passed on</b>The minister asked the HSE, the NTA or another body to reply to the TD directly.` },
+    { bins: [["handoff", now.handoff], ["clear", now.clear], ["rest", now.own - now.clear]], text: `<b class="k" style="color:var(--clear)">${now.clear} clear answers</b>Of the ${now.own} replies ministers wrote themselves, ${now.clear} clearly answered the question.` },
+    { bins: [["handoff", now.handoff], ["clear", now.clear], ["partly", now.partly], ["rest", now.non]], text: `<b class="k">${now.partly} partly answered</b>A general statement on the topic, one part of a multi-part question, or an answer you have to read between the lines for.` },
+    { bins: [["handoff", now.handoff], ["clear", now.clear], ["partly", now.partly], ["non", now.non]], text: `<b class="k" style="color:var(--non)">${now.non} not answered</b>Declined, "the information is not held", or a promise to write later.` },
+    { bins: [["handoff", then.handoff], ["clear", then.clear], ["partly", then.partly], ["non", then.non]], year: "2024",
+      text: `<b class="k">Now rewind to 2024</b>The same 1,000 replies would have held <strong>${then.clear}</strong> clear answers, not ${now.clear}, and ${then.partly} partly answered, not ${now.partly}.` },
+  ];
+  document.getElementById("steps").innerHTML = steps.map((st, i) => `<div class="step" data-i="${i}"><div class="box">${st.text}</div></div>`).join("");
+
+  let W = 0, H = 0, layout = [], current = -1, anim = null;
+  const dots = [];
+  for (let i = 0; i < N; i++) dots.push({ x: 0, y: 0, tx: 0, ty: 0, sx: 0, sy: 0, r: 2, c: "--muted", tc: "--muted", delay: (i % 97) * 4 + Math.floor(i / 97) * 6 });
+
+  // Flow the groups into rows, choosing the largest dot spacing that fits the canvas.
+  function place(bins) {
+    // On wide screens the step text sits on the left, so the dots use the space to its right.
+    const left = W > 900 ? 420 : 0, avail = W - left;
+    const gap = 40, labelH = 46;
+    for (let sp = 16; sp >= 3; sp -= 0.25) {
+      const blocks = bins.map(([k, n]) => { const cols = Math.max(4, Math.ceil(Math.sqrt(n * 1.15))); return { k, n, cols, w: cols * sp, h: Math.ceil(n / cols) * sp }; });
+      const rows = []; let row = [], rw = 0;
+      for (const b of blocks) { if (row.length && rw + gap + b.w > avail) { rows.push(row); row = []; rw = 0; } row.push(b); rw += (row.length > 1 ? gap : 0) + b.w; }
+      rows.push(row);
+      const widths = rows.map(r => r.reduce((a, b, i) => a + b.w + (i ? gap : 0), 0));
+      const heights = rows.map(r => Math.max(...r.map(b => b.h)) + labelH);
+      const total = heights.reduce((a, b) => a + b, 0) + (rows.length - 1) * 24;
+      if (total <= H && widths.every(w => w <= avail)) {
+        let y = (H - total) / 2;
+        rows.forEach((r, ri) => {
+          let x = left + (avail - widths[ri]) / 2;
+          for (const b of r) { b.x = x; b.y = y + labelH; b.s = sp; x += b.w + gap; }
+          y += heights[ri] + 24;
+        });
+        return blocks;
+      }
+    }
+    return [];
+  }
+
+  function size() {
+    const dpr = Math.min(2, devicePixelRatio || 1);
+    W = cv.clientWidth; H = cv.clientHeight;
+    cv.width = W * dpr; cv.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+    const colors = {};
+    for (const o of dots) {
+      ctx.fillStyle = colors[o.c] || (colors[o.c] = css(o.c));
+      ctx.beginPath(); ctx.arc(o.x, o.y, Math.max(1.2, o.r), 0, 6.283); ctx.fill();
+    }
+    for (const b of layout) {
+      ctx.fillStyle = css("--ink");
+      ctx.font = `800 ${Math.max(18, Math.min(30, b.s * 2.4))}px Fraunces, Georgia, serif`;
+      ctx.fillText(b.n.toLocaleString("en-IE"), b.x, b.y - 22);
+      ctx.fillStyle = css("--ink-2");
+      ctx.font = "600 13px system-ui, sans-serif";
+      ctx.fillText(LBL[b.k] + (steps[current].year && b.k !== "all" ? ` (${steps[current].year})` : ""), b.x, b.y - 6);
+    }
+  }
+
+  function go(i, instant) {
+    current = i;
+    layout = place(steps[i].bins);
+    let k = 0;
+    for (const b of layout) for (let j = 0; j < b.n && k < N; j++, k++) {
+      const o = dots[k];
+      o.sx = o.x; o.sy = o.y;
+      o.tx = b.x + (j % b.cols) * b.s + b.s / 2;
+      o.ty = b.y + Math.floor(j / b.cols) * b.s + b.s / 2;
+      o.tc = COL[b.k]; o.r = b.s * 0.36;
+    }
+    cancelAnimationFrame(anim);
+    if (instant || reduced) { dots.forEach(o => { o.x = o.tx; o.y = o.ty; o.c = o.tc; }); draw(); return; }
+    const t0 = performance.now();
+    const tick = t => {
+      let done = true;
+      for (const o of dots) {
+        const q = Math.min(1, Math.max(0, (t - t0 - o.delay) / 700));
+        const e = q < 0.5 ? 4 * q * q * q : 1 - Math.pow(-2 * q + 2, 3) / 2;
+        o.x = o.sx + (o.tx - o.sx) * e; o.y = o.sy + (o.ty - o.sy) * e;
+        if (q > 0.5) o.c = o.tc;
+        if (q < 1) done = false;
+      }
+      draw();
+      if (!done) anim = requestAnimationFrame(tick);
+    };
+    anim = requestAnimationFrame(tick);
+  }
+
+  size(); go(0, true);
+  addEventListener("resize", () => { size(); go(current, true); });
+  if (still) { go(4, true); return; }
+  const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { const i = +e.target.dataset.i; if (i !== current) go(i); } }),
+    { rootMargin: "-45% 0px -45% 0px" });
+  document.querySelectorAll("#steps .step").forEach(n => io.observe(n));
+}
+
+// ---------- why hand-offs rose ----------
+function split(d) {
+  const h = d.headline, sp = h.handoff_split;
+  const base = h.handoff_2012_13, total = h.handoff_recent;
+  const box = document.getElementById("split");
+  const mixCol = "color-mix(in srgb, var(--handoff) 55%, var(--muted))";
+  box.innerHTML = `<div class="split-bar" role="img" aria-label="Hand-off rate ${pct(base)} in 2012–13, plus ${pct(sp.mix)} from department mix and ${pct(sp.within)} from change within departments, giving ${pct(total)}">
+      <div style="background:var(--muted)" data-w="${base / total * 100}%">${pct(base)}</div>
+      <div style="background:${mixCol}" data-w="${sp.mix / total * 100}%">+${Math.round(sp.mix * 100)}</div>
+      <div style="background:var(--handoff)" data-w="${sp.within / total * 100}%">+${Math.round(sp.within * 100)}</div></div>
+    <div class="split-legend"><span><i style="background:var(--muted)"></i>2012–13 level</span>
+      <span><i style="background:${mixCol}"></i>More questions go to departments that work through agencies</span>
+      <span><i style="background:var(--handoff)"></i>Those departments pass on more than they used to</span></div>
+    <p class="note">Approximate: department names and remits change between governments, so departments are matched by name across years.</p>`;
+  const NAMES = { Health: "Health", Transport: "Transport", Children: "Children & Equality" };
+  document.getElementById("before-after").innerHTML = sp.departments.map(x => `<div class="card reveal"><strong>${esc(NAMES[x.name] || x.name)}</strong>
+      <div class="note" style="margin-top:2px">${pct(x.share_before)} → ${pct(x.share_after)} of all questions</div>
+      <div class="ba-row then"><span>2012–13</span><div class="track"><div class="fill" data-w="${x.before * 100}%"></div></div><span>${pct(x.before)}</span></div>
+      <div class="ba-row"><span>2025–26</span><div class="track"><div class="fill" data-w="${x.after * 100}%"></div></div><span>${pct(x.after)}</span></div></div>`).join("");
+  const grow = () => document.querySelectorAll("#split [data-w], #before-after [data-w]").forEach(n => n.style.width = n.dataset.w);
+  if (reduced) grow();
+  else new IntersectionObserver((es, o) => { if (es.some(e => e.isIntersecting)) { requestAnimationFrame(grow); o.disconnect(); } }, { threshold: 0.3 }).observe(box);
+}
+
+// ---------- page ----------
+function drawCharts(d) {
+  // The current month is left out until complete: replies are published a department at a
+  // time, so a few days of data are not comparable with a full month.
+  const mo = d.monthly.filter(m => !m.partial);
+  const xs = mo.map(m => m.month);
+  barChart("chart-asked", xs, mo.map(m => m.asked), { highlight: m => m >= "2025-01" });
+  const monthlySeries = [
+    { label: "Clear answers (share of own replies)", short: "Clear", color: "--clear", values: mo.map(m => m.n ? m.clear : null), band: mo.map(m => m.n ? m.clear_ci : null) },
+    { label: "Passed to another body", short: "Passed on", color: "--handoff", values: mo.map(m => m.n ? m.handoff : null) },
+  ];
+  legend("legend-monthly", monthlySeries);
+  lineChart("chart-monthly", xs, m => m.endsWith("-01") ? m.slice(0, 4) : MONTHS[+m.slice(5) - 1], monthlySeries,
+    { tipTitle: monthName, tick: (m, narrow) => narrow ? m.endsWith("-01") : /-(01|05|09)$/.test(m),
+      notes: [{ at: "2025-01", text: "New Dáil" }] });
+  barChart("chart-grouped", xs, mo.map(m => m.n ? m.grouped : null), { yMax: 0.5, format: v => pct(v) + " of own replies", height: 260 });
+  const yr = d.yearly;
+  const yearlySeries = [
+    { label: "Passed to another body", short: "Passed on", color: "--handoff", values: yr.map(y => y.handoff) },
+    { label: "Clear answers (share of own replies)", short: "Clear", color: "--clear", values: yr.map(y => y.clear) },
+  ];
+  legend("legend-yearly", yearlySeries);
+  lineChart("chart-yearly", yr.map(y => y.year), y => String(y), yearlySeries,
+    { tipTitle: y => "March " + y, tick: (y, narrow) => (y - yr[0].year) % (narrow ? 4 : 2) === 0 });
+}
+
+function render(d) {
+  const h = d.headline;
+  const growth = Math.round((h.asked_per_month_recent / h.asked_per_month_2024 - 1) * 100);
+  document.getElementById("h-judged").textContent = fmt(d.totals.judged);
+  document.getElementById("h-asked24").textContent = fmt(h.asked_per_month_2024);
+  document.getElementById("h-clear24").textContent = pct(h.clear_2024) + " in 2024";
+  document.getElementById("h-hand12").textContent = pct(h.handoff_2012_13) + " in 2012–13";
+  const counters = { asked: h.asked_per_month_recent, clear: h.clear_recent, handoff: h.handoff_recent };
+  document.querySelectorAll("[data-count]").forEach(n => countUp(n, counters[n.dataset.count], n.hasAttribute("data-pct")));
+
+  document.getElementById("more-big").innerHTML = `+${growth}%<small>more written questions a month than in 2024</small>`;
+  document.getElementById("more-body").textContent = `Over the last 12 months with sittings, TDs asked about ${fmt(h.asked_per_month_recent)} written questions a month. In 2024 it was about ${fmt(h.asked_per_month_2024)}. The count has climbed steadily since the new Dáil first met after the November 2024 election.`;
+  document.getElementById("clear-body").textContent = `In 2024, ${pct(h.clear_2024)} of ministers' own replies clearly answered the question. Over the last 12 months it was ${pct(h.clear_recent)}. Most of the rest only partly answered: a general statement on the topic, or one part of a multi-part question.`;
+  const midYears = d.yearly.filter(y => y.year > d.yearly[0].year && y.year < 2024).map(y => y.grouped);
+  document.getElementById("bundled-lead").textContent = `Bundling several TDs' questions into one reply isn't new: ${pct(d.yearly[0].grouped)} of replies in March ${d.yearly[0].year} were combined. For most of the decade since, it ran at ${pct(Math.min(...midYears))}–${pct(Math.max(...midYears))}. Since 2024 it has climbed fast, from ${pct(h.grouped_2024)} to ${pct(h.grouped_recent)} over the last 12 months.`;
+  document.getElementById("bundled-body").textContent = `Combined replies tend to answer each individual question less clearly. But that's not the whole story: replies to a single question also slipped, from ${pct(h.single_clear_2024)} clear in 2024 to ${pct(h.single_clear_recent)}.`;
+  document.getElementById("bundled-pull").textContent = `“I propose to take Questions Nos. 62, 71 and 91 together.”`;
+  split(d);
+  document.getElementById("passed-big").innerHTML = `${pct(h.handoff_2012_13)} → ${pct(h.handoff_recent)}<small>of questions passed to another body, 2012–13 vs the last 12 months</small>`;
+
+  const health = d.departments.find(x => x.name === "Health");
+  document.getElementById("dept-body").textContent = `Departments that run services through agencies pass on far more questions${health ? `: Health passes on ${pct(health.handoff)} of its questions, to the HSE and other agencies` : ""}. That's how they're organised, not evasion. Among ministers' own replies, clear answers range widely between departments.`;
+  document.getElementById("dept-note").textContent = `Last 12 months with sittings (${h.period.replace(" to ", " – ")}); departments with at least 100 judged questions. Hover a row for exact figures.`;
+  document.querySelectorAll(".sortbar .chip").forEach(b => b.onclick = () => {
+    document.querySelectorAll(".sortbar .chip").forEach(x => x.setAttribute("aria-pressed", x === b));
+    departments(d, b.dataset.sort);
+  });
+  departments(d, "handoff");
+
+  const live = document.getElementById("live");
+  if (d.week && d.latest.length) {
+    const range = d.week.from === d.week.to ? d.week.from : `${d.week.from} to ${d.week.to}`;
+    const depts = d.week.departments.map(([n, k]) => `${esc(n)} (${k})`).join(", ");
+    live.innerHTML = `<p class="body">Every new reply is judged the day it's published. Latest batch: <strong>${fmt(d.week.n)} replies</strong> (${range}). ${pct(d.week.handoff)} passed to another body; of the rest, ${pct(d.week.clear)} clear, ${pct(d.week.partly)} partly, ${pct(d.week.non)} not answered.</p>
+      <p class="note">Covers ${depts}. Replies are published a department at a time, so one week can look very different from the monthly trend.</p>
+      <div class="ex" style="margin-top:16px">${d.latest.slice(0, 3).map(articleHTML).join("")}</div>`;
+  } else {
+    live.innerHTML = `<p class="body">Daily coverage starts in October 2026. From then on, every new reply is judged the day it's published and the newest appear here.</p>`;
+  }
+
+  const kinds = ["all", "Clear Reply", "Ambivalent", "Clear Non-Reply", "handoff"];
+  const tabs = document.getElementById("tabs");
+  const show = k => {
+    tabs.querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", b.dataset.k === k));
+    document.getElementById("examples").innerHTML = d.examples.filter(e => k === "all" || e.kind === k).map(articleHTML).join("");
+  };
+  tabs.innerHTML = kinds.map(k => `<button class="chip" data-k="${k}">${k === "all" ? "All" : KIND[k]}</button>`).join("");
+  tabs.querySelectorAll("button").forEach(b => b.onclick = () => show(b.dataset.k));
+  show("all");
+
+  const me = d.method, facts = [];
+  if (me.human) facts.push([pct(me.human.human_jev), "Agreement with a person", `On ${me.human.n_compared} replies a person labelled without seeing the model's answer (Cohen's κ ${me.human.human_jev_kappa}).`]);
+  if (me.irish) facts.push([pct(me.irish.accuracy), "Agreement with 400 labelled replies", `Labelled with an AI assistant using written rules; those labels agree with the person above ${me.human ? pct(me.human.human_claude) : ""} of the time.`]);
+  if (me.irish) facts.push([String(me.irish.ece), "Calibration error", "When the model says it's 90% sure, it's right about 90% of the time on Irish written replies. 0 is perfect."]);
+  if (me.irish) facts.push([`${me.irish.handoffs_found}/${me.irish.handoffs}`, "Hand-offs caught", "“The HSE will reply directly” is the easiest call, which makes the passed-on trend the most reliable finding here."]);
+  if (me.qevasion) facts.push([pct(me.qevasion.accuracy), "On US presidential interviews", `Much weaker on spoken interviews (QEvasion benchmark): ${pct(me.qevasion.baseline)} for always guessing the commonest answer, calibration error ${me.qevasion.ece}.`]);
+  document.getElementById("facts").innerHTML = facts.map(([v, t, p]) =>
+    `<div class="card reveal"><div class="value">${v}</div><strong>${t}</strong><p>${p}</p></div>`).join("");
+
+  document.getElementById("updated").textContent = `Updated ${d.updated} · ${fmt(d.totals.judged)} replies judged so far, for $${d.totals.cost.toFixed(2)} in total.`;
+  quiz(d);
+  observeReveals();
+}
+
+function observeReveals() {
+  const io = new IntersectionObserver((es, o) => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add("in"); o.unobserve(e.target); } }),
+    { threshold: 0.12, rootMargin: "0px 0px -40px 0px" });
+  document.querySelectorAll(".reveal:not(.in)").forEach(n => io.observe(n));
+}
+
+// progress bar, sticky chapter nav, active chapter
+const nav = document.getElementById("nav"), bar = document.getElementById("progress");
+const chapterLinks = [...nav.querySelectorAll("a")];
+addEventListener("scroll", () => {
+  const max = document.documentElement.scrollHeight - innerHeight;
+  bar.style.width = (scrollY / max * 100) + "%";
+  nav.classList.toggle("show", scrollY > innerHeight * 0.7);
+  let current = null;
+  for (const a of chapterLinks) {
+    const s = document.querySelector(a.getAttribute("href"));
+    if (s && s.getBoundingClientRect().top < innerHeight * 0.4) current = a;
+  }
+  chapterLinks.forEach(a => a.classList.toggle("on", a === current));
+}, { passive: true });
+
+let redraw = () => {}, resizeTimer;
+addEventListener("resize", () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(() => redraw(), 150); });
+
+observeReveals();
+fetch("data.json", { cache: "no-cache" }).then(r => r.json()).then(d => {
+  render(d);
+  ambient(d);
+  document.fonts.ready.then(() => thousand(d));
+  redraw = () => drawCharts(d);
+  redraw();
+}).catch(err => {
+  document.getElementById("updated").textContent = "Could not load the data.";
+  console.error(err);
+});
+</script>
+</body>
+</html>
